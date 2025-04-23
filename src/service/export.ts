@@ -1,7 +1,7 @@
 import { pipeline } from "node:stream/promises";
 import { SQL } from "../db/client";
 import { Transform } from "node:stream";
-import { createWriteStream } from "node:fs";
+import { createWriteStream, existsSync, mkdirSync } from "node:fs";
 import { stringify } from "csv-stringify";
 
 const execute = async () => {
@@ -23,6 +23,8 @@ const execute = async () => {
     },
   });
 
+  const path = makePath();
+
   await pipeline(
     cursor,
     stream,
@@ -31,8 +33,14 @@ const execute = async () => {
       header: true,
       columns: ["id", "name"],
     }),
-    createWriteStream("./products.csv", "utf8")
+    createWriteStream(path, "utf8")
   );
+};
+
+const makePath = () => {
+  const csvDir = "./csv";
+  if (!existsSync(csvDir)) mkdirSync(csvDir);
+  return `${csvDir}/products.csv`;
 };
 
 export { execute };
